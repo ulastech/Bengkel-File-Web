@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bengkel File — Buka Proteksi & Konversi Format</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+  :root{
+    --ink:#161a20;
+    --paper:#f2f3f6;
+    --panel:#ffffff;
+    --line:#dcdfe6;
+    --teal:#1f8a82;
+    --teal-dark:#146b64;
+    --amber:#e0993d;
+    --amber-dark:#b9791f;
+    --danger:#c04a4a;
+    --muted:#6b7280;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  header{
+    padding:38px 24px 28px;
+    max-width:920px;
+    margin:0 auto;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--teal-dark);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:8px;height:8px;
+    background:var(--amber);
+    display:inline-block;
+    border-radius:1px;
+    transform:rotate(45deg);
+  }
+  h1{
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:-0.02em;
+    margin:0 0 10px;
+  }
+  header p{
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.6;
+    max-width:640px;
+    margin:0;
+  }
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px 80px;}
+
+  .tabs{
+    display:flex;
+    gap:2px;
+    background:var(--line);
+    border-radius:12px;
+    padding:3px;
+    margin-bottom:28px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:12px 10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    font-weight:500;
+    letter-spacing:.02em;
+    cursor:pointer;
+    border-radius:9px;
+    color:var(--muted);
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .tab.active{
+    background:var(--panel);
+    color:var(--ink);
+    box-shadow:0 1px 2px rgba(0,0,0,.06);
+  }
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px;
+    margin-bottom:20px;
+  }
+  .card h2{
+    font-size:17px;
+    font-weight:700;
+    margin:0 0 4px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .card h2 .num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--teal-dark);
+    background:#e7f3f1;
+    border-radius:6px;
+    padding:3px 7px;
+  }
+  .card .desc{
+    color:var(--muted);
+    font-size:13.5px;
+    line-height:1.55;
+    margin:6px 0 18px;
+  }
+
+  .dropzone{
+    border:1.5px dashed var(--line);
+    border-radius:10px;
+    padding:20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+    background:#fafbfc;
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color:var(--teal);
+    background:#f2f9f8;
+  }
+  .dropzone input{display:none;}
+  .dropzone .fname{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    color:var(--teal-dark);
+    margin-top:6px;
+    word-break:break-all;
+  }
+  .dropzone .hint{
+    font-size:13px;
+    color:var(--muted);
+  }
+
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;}
+  select, input[type=text], input[type=password]{
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink);
+  }
+
+  button{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    font-weight:500;
+    letter-spacing:.02em;
+    padding:11px 18px;
+    border-radius:8px;
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  button:hover{background:var(--teal-dark);}
+  button:disabled{background:#b9bec7;cursor:not-allowed;}
+  button.amber{background:var(--amber);}
+  button.amber:hover{background:var(--amber-dark);}
+
+  .status{
+    margin-top:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    padding:10px 12px;
+    border-radius:8px;
+    display:none;
+  }
+  .status.show{display:block;}
+  .status.info{background:#eef2f7;color:#3a4453;}
+  .status.ok{background:#e7f3ee;color:var(--teal-dark);}
+  .status.err{background:#fbeaea;color:var(--danger);}
+  .status.wait{background:#fdf3e4;color:var(--amber-dark);}
+
+  .note{
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.6;
+    margin-top:14px;
+    border-top:1px dashed var(--line);
+    padding-top:12px;
+  }
+  .note b{color:var(--ink);}
+
+  .swap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .swap .arrow{
+    color:var(--amber-dark);
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+  }
+
+  footer{
+    max-width:920px;margin:0 auto;padding:0 24px 60px;
+    color:var(--muted);font-size:12px;line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Bengkel File — jalan sepenuhnya di browser Anda</div>
+  <h1>Buka proteksi & konversi format file</h1>
+  <p>Hapus batasan edit/print/copy pada PDF, DOCX, XLSX, dan ubah antar format (PDF ⇄ Word, Excel ⇄ CSV, gambar ⇄ PDF). Semua proses berjalan lokal di perangkat Anda — file tidak diunggah ke server manapun.</p>
+</header>
+
+<div class="wrap">
+
+  <div class="tabs">
+    <div class="tab active" data-tab="unlock">🔓 Buka Proteksi</div>
+    <div class="tab" data-tab="convert">🔁 Konversi Format</div>
+  </div>
+
+  <!-- ===================== TAB: UNLOCK ===================== -->
+  <div class="panel active" id="panel-unlock">
+
+    <div class="card">
+      <h2><span class="num">01</span> PDF — hapus proteksi</h2>
+      <p class="desc">Untuk PDF yang <b>bisa dibuka tanpa password</b> tapi dibatasi print/copy/edit. Tool ini merender ulang setiap halaman menjadi PDF baru tanpa enkripsi. Jika PDF meminta password untuk <b>membuka</b>, masukkan password itu di kolom di bawah — tool ini tidak bisa menebak/membobol password yang tidak diketahui.</p>
+      <div class="dropzone" id="dz-pdf">
+        <div class="hint">Klik atau seret file .pdf ke sini</div>
+        <div class="fname" id="fname-pdf"></div>
+        <input type="file" id="file-pdf" accept="application/pdf">
+      </div>
+      <div class="row">
+        <input type="password" id="pw-pdf" placeholder="Password (isi jika file meminta password saat dibuka)" style="flex:1;min-width:240px;">
+        <button id="btn-pdf">Hapus Proteksi PDF</button>
+      </div>
+      <div class="status" id="status-pdf"></div>
+      <div class="note">Catatan: hasil berupa PDF baru berbasis gambar per halaman (tampilan identik), sehingga teks tidak lagi bisa di-select/copy secara langsung. Ini trade-off yang diperlukan agar proteksi benar-benar hilang.</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">02</span> Word (.docx) / Excel (.xlsx) — hapus proteksi</h2>
+      <p class="desc">Menghapus pengaturan "Restrict Editing" (Word) atau "Protect Sheet/Workbook" (Excel) dari file yang <b>tidak dikunci password untuk dibuka</b>. Jika file dienkripsi penuh dengan password buka, tool ini akan memberi tahu Anda bahwa itu di luar kemampuannya.</p>
+      <div class="dropzone" id="dz-office">
+        <div class="hint">Klik atau seret file .docx / .xlsx ke sini</div>
+        <div class="fname" id="fname-office"></div>
+        <input type="file" id="file-office" accept=".docx,.xlsx">
+      </div>
+      <div class="row">
+        <button id="btn-office">Hapus Proteksi</button>
+      </div>
+      <div class="status" id="status-office"></div>
+    </div>
+
+  </div>
+
+  <!-- ===================== TAB: CONVERT ===================== -->
+  <div class="panel" id="panel-convert">
+
+    <div class="card">
+      <h2><span class="num">01</span> Pilih arah konversi</h2>
+      <div class="row swap">
+        <select id="conv-type">
+          <option value="pdf2docx">PDF → Word (.docx, teks)</option>
+          <option value="pdf2img">PDF → Gambar (.png per halaman, .zip)</option>
+          <option value="docx2pdf">Word (.docx) → PDF</option>
+          <option value="docx2txt">Word (.docx) → Teks (.txt)</option>
+          <option value="xlsx2csv">Excel (.xlsx) → CSV</option>
+          <option value="xlsx2json">Excel (.xlsx) → JSON</option>
+          <option value="csv2xlsx">CSV → Excel (.xlsx)</option>
+          <option value="img2pdf">Gambar (.jpg/.png, bisa multi) → PDF</option>
+        </select>
+      </div>
+      <div class="dropzone" id="dz-conv" style="margin-top:16px;">
+        <div class="hint" id="conv-hint">Klik atau seret file ke sini</div>
+        <div class="fname" id="fname-conv"></div>
+        <input type="file" id="file-conv">
+      </div>
+      <div class="row">
+        <button id="btn-conv" class="amber">Konversi</button>
+      </div>
+      <div class="status" id="status-conv"></div>
+      <div class="note">
+        <b>Catatan kualitas hasil:</b> konversi PDF→Word mengekstrak teks polos (tanpa tata letak/gambar asli). Konversi Word→PDF mengikuti tampilan render HTML sehingga format kompleks (tabel rumit, kolom) bisa sedikit berbeda dari aslinya. Untuk dokumen penting dengan format rumit, cek kembali hasilnya sebelum dipakai.
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>Dibuat sebagai alat bantu pribadi. Gunakan hanya untuk file yang memang Anda miliki haknya. Semua pemrosesan file terjadi di browser Anda sendiri — tidak ada file yang dikirim ke server manapun.</footer>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const { PDFDocument } = PDFLib;
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- helpers ----------
+function setStatus(id, msg, kind){
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status show ' + kind;
+}
+function download(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+function wireDropzone(dzId, inputId, fnameId, filterExt){
+  const dz = document.getElementById(dzId);
+  const input = document.getElementById(inputId);
+  const fname = document.getElementById(fnameId);
+  dz.addEventListener('click', ()=>input.click());
+  dz.addEventListener('dragover', e=>{e.preventDefault(); dz.classList.add('drag');});
+  dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop', e=>{
+    e.preventDefault(); dz.classList.remove('drag');
+    if(e.dataTransfer.files.length){ input.files = e.dataTransfer.files; fname.textContent = input.files[0].name; }
+  });
+  input.addEventListener('change', ()=>{
+    if(input.files.length) fname.textContent = input.files[0].name;
+  });
+  return {input, fname};
+}
+const pdfPick = wireDropzone('dz-pdf','file-pdf','fname-pdf');
+const officePick = wireDropzone('dz-office','file-office','fname-office');
+const convPick = wireDropzone('dz-conv','file-conv','fname-conv');
+
+function extOf(name){ return name.split('.').pop().toLowerCase(); }
+
+// ================= 1) PDF UNLOCK =================
+document.getElementById('btn-pdf').addEventListener('click', async ()=>{
+  const file = pdfPick.input.files[0];
+  if(!file){ setStatus('status-pdf','Pilih file PDF terlebih dahulu.','err'); return; }
+  const pw = document.getElementById('pw-pdf').value || '';
+  const btn = document.getElementById('btn-pdf');
+  btn.disabled = true;
+  try{
+    setStatus('status-pdf','Membaca & mendekripsi PDF...','wait');
+    const buf = await file.arrayBuffer();
+    let pdf;
+    try{
+      pdf = await pdfjsLib.getDocument({data: buf, password: pw}).promise;
+    }catch(e){
+      if(e.name === 'PasswordException'){
+        setStatus('status-pdf','File ini butuh password untuk dibuka. Masukkan password di kolom di atas lalu coba lagi.','err');
+        btn.disabled=false; return;
+      }
+      throw e;
+    }
+    const outDoc = await PDFDocument.create();
+    for(let i=1;i<=pdf.numPages;i++){
+      setStatus('status-pdf',`Merender halaman ${i} dari ${pdf.numPages}...`,'wait');
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({scale:2});
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width; canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+      await page.render({canvasContext: ctx, viewport}).promise;
+      const pngData = canvas.toDataURL('image/png');
+      const pngBytes = await (await fetch(pngData)).arrayBuffer();
+      const img = await outDoc.embedPng(pngBytes);
+      const pdfPage = outDoc.addPage([viewport.width/2, viewport.height/2]);
+      pdfPage.drawImage(img, {x:0, y:0, width: viewport.width/2, height: viewport.height/2});
+    }
+    setStatus('status-pdf','Menyimpan file...','wait');
+    const outBytes = await outDoc.save();
+    download(new Blob([outBytes], {type:'application/pdf'}), 'unprotected-' + file.name);
+    setStatus('status-pdf','Selesai! PDF tanpa proteksi berhasil diunduh.','ok');
+  }catch(err){
+    console.error(err);
+    setStatus('status-pdf','Gagal memproses: ' + err.message, 'err');
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+// ================= 2) DOCX / XLSX UNLOCK =================
+document.getElementById('btn-office').addEventListener('click', async ()=>{
+  const file = officePick.input.files[0];
+  if(!file){ setStatus('status-office','Pilih file .docx atau .xlsx terlebih dahulu.','err'); return; }
+  const ext = extOf(file.name);
+  const btn = document.getElementById('btn-office');
+  btn.disabled = true;
+  try{
+    setStatus('status-office','Membuka struktur file...','wait');
+    const buf = await file.arrayBuffer();
+    let zip;
+    try{
+      zip = await JSZip.loadAsync(buf);
+    }catch(e){
+      setStatus('status-office','File ini terenkripsi penuh (butuh password untuk dibuka) sehingga tidak bisa diproses tool ini.','err');
+      btn.disabled=false; return;
+    }
+
+    let changed = false;
+
+    if(ext === 'docx'){
+      const path = 'word/settings.xml';
+      if(zip.file(path)){
+        let xml = await zip.file(path).async('text');
+        const before = xml;
+        xml = xml.replace(/<w:documentProtection[^>]*\/>/g, '');
+        xml = xml.replace(/<w:documentProtection[^>]*>[\s\S]*?<\/w:documentProtection>/g, '');
+        xml = xml.replace(/<w:writeProtection[^>]*\/>/g, '');
+        if(xml !== before){ zip.file(path, xml); changed = true; }
+      }
+    } else if(ext === 'xlsx'){
+      // workbook-level protection
+      const wbPath = 'xl/workbook.xml';
+      if(zip.file(wbPath)){
+        let xml = await zip.file(wbPath).async('text');
+        const before = xml;
+        xml = xml.replace(/<workbookProtection[^>]*\/>/g, '');
+        if(xml !== before){ zip.file(wbPath, xml); changed = true; }
+      }
+      // per-sheet protection
+      const sheetFiles = Object.keys(zip.files).filter(p => /^xl\/worksheets\/sheet\d+\.xml$/.test(p));
+      for(const p of sheetFiles){
+        let xml = await zip.file(p).async('text');
+        const before = xml;
+        xml = xml.replace(/<sheetProtection[^>]*\/>/g, '');
+        if(xml !== before){ zip.file(p, xml); changed = true; }
+      }
+    } else {
+      setStatus('status-office','Format tidak dikenali. Gunakan file .docx atau .xlsx.','err');
+      btn.disabled=false; return;
+    }
+
+    if(!changed){
+      setStatus('status-office','Tidak ditemukan proteksi edit/sheet pada file ini (atau proteksi tersembunyi lewat cara lain). File asli tidak diubah.','info');
+      btn.disabled=false; return;
+    }
+
+    setStatus('status-office','Menyusun ulang file...','wait');
+    const outBlob = await zip.generateAsync({type:'blob', mimeType: file.type || 'application/octet-stream'});
+    download(outBlob, 'unlocked-' + file.name);
+    setStatus('status-office','Selesai! Proteksi berhasil dihapus dan file diunduh.','ok');
+  }catch(err){
+    console.error(err);
+    setStatus('status-office','Gagal memproses: ' + err.message, 'err');
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+// ================= 3) CONVERT =================
+const convHints = {
+  pdf2docx: {accept:'application/pdf', hint:'Klik atau seret file .pdf'},
+  pdf2img: {accept:'application/pdf', hint:'Klik atau seret file .pdf'},
+  docx2pdf: {accept:'.docx', hint:'Klik atau seret file .docx'},
+  docx2txt: {accept:'.docx', hint:'Klik atau seret file .docx'},
+  xlsx2csv: {accept:'.xlsx,.xls', hint:'Klik atau seret file .xlsx'},
+  xlsx2json: {accept:'.xlsx,.xls', hint:'Klik atau seret file .xlsx'},
+  csv2xlsx: {accept:'.csv', hint:'Klik atau seret file .csv'},
+  img2pdf: {accept:'image/png,image/jpeg', hint:'Klik atau seret satu/lebih gambar .jpg/.png', multi:true},
+};
+const convTypeSel = document.getElementById('conv-type');
+function updateConvUI(){
+  const cfg = convHints[convTypeSel.value];
+  document.getElementById('file-conv').setAttribute('accept', cfg.accept);
+  document.getElementById('file-conv').multiple = !!cfg.multi;
+  document.getElementById('conv-hint').textContent = cfg.hint;
+}
+convTypeSel.addEventListener('change', updateConvUI);
+updateConvUI();
+
+function escapeXml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// build a minimal valid .docx from plain paragraphs
+async function buildSimpleDocx(paragraphs){
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`);
+  zip.folder('_rels').file('.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+  const body = paragraphs.map(p => `<w:p><w:r><w:t xml:space="preserve">${escapeXml(p)}</w:t></w:r></w:p>`).join('');
+  zip.folder('word').file('document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>${body}</w:body>
+</w:document>`);
+  zip.folder('word').folder('_rels').file('document.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`);
+  return await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+
+document.getElementById('btn-conv').addEventListener('click', async ()=>{
+  const files = convPick.input.files;
+  if(!files || !files.length){ setStatus('status-conv','Pilih file terlebih dahulu.','err'); return; }
+  const mode = convTypeSel.value;
+  const btn = document.getElementById('btn-conv');
+  btn.disabled = true;
+  try{
+    setStatus('status-conv','Memproses...','wait');
+    const file = files[0];
+
+    if(mode === 'pdf2docx'){
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+      const paragraphs = [];
+      for(let i=1;i<=pdf.numPages;i++){
+        const page = await pdf.getPage(i);
+        const tc = await page.getTextContent();
+        const text = tc.items.map(it=>it.str).join(' ');
+        paragraphs.push(`— Halaman ${i} —`);
+        paragraphs.push(text);
+      }
+      const blob = await buildSimpleDocx(paragraphs);
+      download(blob, file.name.replace(/\.pdf$/i,'') + '.docx');
+
+    } else if(mode === 'pdf2img'){
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+      const zip = new JSZip();
+      for(let i=1;i<=pdf.numPages;i++){
+        setStatus('status-conv',`Merender halaman ${i}/${pdf.numPages}...`,'wait');
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({scale:2});
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width; canvas.height = viewport.height;
+        await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
+        const dataUrl = canvas.toDataURL('image/png');
+        const bytes = await (await fetch(dataUrl)).arrayBuffer();
+        zip.file(`halaman-${String(i).padStart(2,'0')}.png`, bytes);
+      }
+      const blob = await zip.generateAsync({type:'blob'});
+      download(blob, file.name.replace(/\.pdf$/i,'') + '-images.zip');
+
+    } else if(mode === 'docx2txt' || mode === 'docx2pdf'){
+      const buf = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({arrayBuffer: buf});
+      if(mode === 'docx2txt'){
+        const tmp = document.createElement('div');
+        tmp.innerHTML = result.value;
+        const text = tmp.innerText;
+        download(new Blob([text], {type:'text/plain'}), file.name.replace(/\.docx$/i,'') + '.txt');
+      } else {
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;left:-9999px;top:0;width:750px;padding:20px;background:#fff;font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#000;';
+        container.innerHTML = result.value;
+        document.body.appendChild(container);
+        setStatus('status-conv','Merender tampilan dokumen...','wait');
+        const canvas = await html2canvas(container, {scale:2});
+        document.body.removeChild(container);
+        const { jsPDF } = window.jspdf;
+        const pdfDoc = new jsPDF({unit:'pt', format:'a4'});
+        const pageW = pdfDoc.internal.pageSize.getWidth();
+        const pageH = pdfDoc.internal.pageSize.getHeight();
+        const imgW = pageW;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        let heightLeft = imgH;
+        let position = 0;
+        const imgData = canvas.toDataURL('image/png');
+        pdfDoc.addImage(imgData, 'PNG', 0, position, imgW, imgH);
+        heightLeft -= pageH;
+        while(heightLeft > 0){
+          position = heightLeft - imgH;
+          pdfDoc.addPage();
+          pdfDoc.addImage(imgData, 'PNG', 0, position, imgW, imgH);
+          heightLeft -= pageH;
+        }
+        download(pdfDoc.output('blob'), file.name.replace(/\.docx$/i,'') + '.pdf');
+      }
+
+    } else if(mode === 'xlsx2csv' || mode === 'xlsx2json'){
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, {type:'array'});
+      const firstSheet = wb.SheetNames[0];
+      const ws = wb.Sheets[firstSheet];
+      if(mode === 'xlsx2csv'){
+        const csv = XLSX.utils.sheet_to_csv(ws);
+        download(new Blob([csv], {type:'text/csv'}), file.name.replace(/\.xlsx?$/i,'') + '.csv');
+      } else {
+        const json = XLSX.utils.sheet_to_json(ws);
+        download(new Blob([JSON.stringify(json, null, 2)], {type:'application/json'}), file.name.replace(/\.xlsx?$/i,'') + '.json');
+      }
+
+    } else if(mode === 'csv2xlsx'){
+      const text = await file.text();
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(text.split(/\r?\n/).map(line => line.split(',')));
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      const out = XLSX.write(wb, {type:'array', bookType:'xlsx'});
+      download(new Blob([out], {type:'application/octet-stream'}), file.name.replace(/\.csv$/i,'') + '.xlsx');
+
+    } else if(mode === 'img2pdf'){
+      const outDoc = await PDFDocument.create();
+      for(const f of files){
+        const bytes = await f.arrayBuffer();
+        let img;
+        if(/png/i.test(f.type) || /\.png$/i.test(f.name)) img = await outDoc.embedPng(bytes);
+        else img = await outDoc.embedJpg(bytes);
+        const page = outDoc.addPage([img.width, img.height]);
+        page.drawImage(img, {x:0, y:0, width: img.width, height: img.height});
+      }
+      const outBytes = await outDoc.save();
+      download(new Blob([outBytes], {type:'application/pdf'}), 'gambar-ke-pdf.pdf');
+    }
+
+    setStatus('status-conv','Selesai! File hasil konversi berhasil diunduh.','ok');
+  }catch(err){
+    console.error(err);
+    setStatus('status-conv','Gagal memproses: ' + err.message, 'err');
+  }finally{
+    btn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
