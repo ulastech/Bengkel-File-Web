@@ -3,6 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  CSP: script-src mengizinkan CDN yang benar-benar dipakai (cdnjs.cloudflare.com,
+  cdn.sheetjs.com) plus satu inline <script type="module"> lewat SHA-256 hash —
+  BUKAN 'unsafe-inline', jadi inline script lain/eval tidak diizinkan.
+  PENTING: kalau isi <script type="module"> di bawah diubah, hash ini WAJIB
+  dihitung ulang (SHA-256 dari isi persis di antara tag <script>...</script>,
+  encode base64), atau browser akan memblokir seluruh app.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.sheetjs.com 'sha256-RVEpM/Vhzrlmb88n3IBklbtkyhhFGfLhuJHEmkrqZIM='; worker-src 'self' https://cdnjs.cloudflare.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' data: blob: https://fonts.googleapis.com; object-src 'none'; base-uri 'none'; form-action 'none';">
 <title>Bengkel File — Buka Proteksi & Konversi Format</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -349,6 +358,28 @@ function download(blob, filename){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url), 4000);
 }
+
+// batas ukuran file supaya browser tidak lag/hang saat memproses di sisi klien
+const MAX_FILE_SIZE_MB = 50;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+function formatMB(bytes){ return (bytes / (1024*1024)).toFixed(1); }
+function validateFileSize(file, statusId){
+  if(file.size > MAX_FILE_SIZE_BYTES){
+    setStatus(statusId, `File terlalu besar (${formatMB(file.size)} MB). Ukuran maksimal yang didukung adalah ${MAX_FILE_SIZE_MB} MB agar browser tidak lag/hang saat memproses. Coba gunakan file yang lebih kecil.`, 'err');
+    return false;
+  }
+  return true;
+}
+function setBusy(btn, busy, busyLabel){
+  if(busy){
+    if(btn.dataset.label === undefined) btn.dataset.label = btn.textContent;
+    btn.textContent = busyLabel || '⏳ Memproses...';
+    btn.disabled = true;
+  } else {
+    if(btn.dataset.label !== undefined) btn.textContent = btn.dataset.label;
+    btn.disabled = false;
+  }
+}
 function wireDropzone(dzId, inputId, fnameId, filterExt){
   const dz = document.getElementById(dzId);
   const input = document.getElementById(inputId);
@@ -375,9 +406,10 @@ function extOf(name){ return name.split('.').pop().toLowerCase(); }
 document.getElementById('btn-pdf').addEventListener('click', async ()=>{
   const file = pdfPick.input.files[0];
   if(!file){ setStatus('status-pdf','Pilih file PDF terlebih dahulu.','err'); return; }
+  if(!validateFileSize(file, 'status-pdf')) return;
   const pw = document.getElementById('pw-pdf').value || '';
   const btn = document.getElementById('btn-pdf');
-  btn.disabled = true;
+  setBusy(btn, true);
   try{
     setStatus('status-pdf','Membaca & mendekripsi PDF...','wait');
     const buf = await file.arrayBuffer();
@@ -387,7 +419,7 @@ document.getElementById('btn-pdf').addEventListener('click', async ()=>{
     }catch(e){
       if(e.name === 'PasswordException'){
         setStatus('status-pdf','File ini butuh password untuk dibuka. Masukkan password di kolom di atas lalu coba lagi.','err');
-        btn.disabled=false; return;
+        setBusy(btn, false); return;
       }
       throw e;
     }
@@ -412,9 +444,9 @@ document.getElementById('btn-pdf').addEventListener('click', async ()=>{
     setStatus('status-pdf','Selesai! PDF tanpa proteksi berhasil diunduh.','ok');
   }catch(err){
     console.error(err);
-    setStatus('status-pdf','Gagal memproses: ' + err.message, 'err');
+    setStatus('status-pdf','Gagal memproses PDF. Pastikan file adalah PDF yang valid dan tidak rusak, lalu coba lagi. (Detail teknis dicatat di console browser untuk keperluan debug.)', 'err');
   }finally{
-    btn.disabled = false;
+    setBusy(btn, false);
   }
 });
 
@@ -422,9 +454,10 @@ document.getElementById('btn-pdf').addEventListener('click', async ()=>{
 document.getElementById('btn-office').addEventListener('click', async ()=>{
   const file = officePick.input.files[0];
   if(!file){ setStatus('status-office','Pilih file .docx atau .xlsx terlebih dahulu.','err'); return; }
+  if(!validateFileSize(file, 'status-office')) return;
   const ext = extOf(file.name);
   const btn = document.getElementById('btn-office');
-  btn.disabled = true;
+  setBusy(btn, true);
   try{
     setStatus('status-office','Membuka struktur file...','wait');
     const buf = await file.arrayBuffer();
@@ -433,7 +466,7 @@ document.getElementById('btn-office').addEventListener('click', async ()=>{
       zip = await JSZip.loadAsync(buf);
     }catch(e){
       setStatus('status-office','File ini terenkripsi penuh (butuh password untuk dibuka) sehingga tidak bisa diproses tool ini.','err');
-      btn.disabled=false; return;
+      setBusy(btn, false); return;
     }
 
     let changed = false;
@@ -467,12 +500,12 @@ document.getElementById('btn-office').addEventListener('click', async ()=>{
       }
     } else {
       setStatus('status-office','Format tidak dikenali. Gunakan file .docx atau .xlsx.','err');
-      btn.disabled=false; return;
+      setBusy(btn, false); return;
     }
 
     if(!changed){
       setStatus('status-office','Tidak ditemukan proteksi edit/sheet pada file ini (atau proteksi tersembunyi lewat cara lain). File asli tidak diubah.','info');
-      btn.disabled=false; return;
+      setBusy(btn, false); return;
     }
 
     setStatus('status-office','Menyusun ulang file...','wait');
@@ -481,9 +514,9 @@ document.getElementById('btn-office').addEventListener('click', async ()=>{
     setStatus('status-office','Selesai! Proteksi berhasil dihapus dan file diunduh.','ok');
   }catch(err){
     console.error(err);
-    setStatus('status-office','Gagal memproses: ' + err.message, 'err');
+    setStatus('status-office','Gagal memproses file. Pastikan file .docx/.xlsx valid dan tidak rusak, lalu coba lagi. (Detail teknis dicatat di console browser untuk keperluan debug.)', 'err');
   }finally{
-    btn.disabled = false;
+    setBusy(btn, false);
   }
 });
 
@@ -538,9 +571,12 @@ async function buildSimpleDocx(paragraphs){
 document.getElementById('btn-conv').addEventListener('click', async ()=>{
   const files = convPick.input.files;
   if(!files || !files.length){ setStatus('status-conv','Pilih file terlebih dahulu.','err'); return; }
+  for(const f of files){
+    if(!validateFileSize(f, 'status-conv')) return;
+  }
   const mode = convTypeSel.value;
   const btn = document.getElementById('btn-conv');
-  btn.disabled = true;
+  setBusy(btn, true);
   try{
     setStatus('status-conv','Memproses...','wait');
     const file = files[0];
@@ -651,9 +687,9 @@ document.getElementById('btn-conv').addEventListener('click', async ()=>{
     setStatus('status-conv','Selesai! File hasil konversi berhasil diunduh.','ok');
   }catch(err){
     console.error(err);
-    setStatus('status-conv','Gagal memproses: ' + err.message, 'err');
+    setStatus('status-conv','Gagal melakukan konversi. Pastikan file dan format yang dipilih sudah sesuai, lalu coba lagi. (Detail teknis dicatat di console browser untuk keperluan debug.)', 'err');
   }finally{
-    btn.disabled = false;
+    setBusy(btn, false);
   }
 });
 </script>
