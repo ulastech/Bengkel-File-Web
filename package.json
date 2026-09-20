@@ -1,0 +1,15 @@
+{
+  "name": "bengkel-file-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tracking versi library CDN untuk GitHub Dependabot — lihat README bagian 'package.json'.",
+  "devDependencies": {
+    "pdfjs-dist": "4.2.67",
+    "pdf-lib": "1.17.1",
+    "jszip": "3.10.1",
+    "xlsx": "0.20.3",
+    "mammoth": "1.6.0",
+    "jspdf": "4.2.1",
+    "html2canvas": "1.4.1"
+  }
+}

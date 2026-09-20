@@ -17,3 +17,7 @@ Ini **bukan** alat pembobol password. Kalau file dienkripsi dengan password buka
 ## Deploy
 
 Sama seperti Suratku/MarginXL: push ke GitHub, hubungkan ke Cloudflare (Workers & Pages → Continue with GitHub → pilih repo ini), build command kosong, deploy command `npx wrangler deploy` (sudah ada `wrangler.toml`).
+
+## package.json
+
+File `package.json` di repo ini **hanya untuk keperluan tracking versi oleh GitHub Dependabot** (supaya dapat alert kalau ada CVE baru di salah satu library yang dipakai). Ini bukan untuk build atau instalasi — aplikasi tetap murni client-side, semua library dimuat langsung dari CDN (cdnjs, cdn.sheetjs.com) lewat tag `<script>` di `index.html`, dengan Subresource Integrity (SRI). Tidak perlu `npm install` untuk menjalankan atau mengembangkan project ini.
