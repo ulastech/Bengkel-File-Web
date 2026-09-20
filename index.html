@@ -29,12 +29,12 @@
     --paper:#f2f3f6;
     --panel:#ffffff;
     --line:#dcdfe6;
-    --teal:#1f8a82;
+    --teal:#1d827a;
     --teal-dark:#146b64;
-    --amber:#e0993d;
-    --amber-dark:#b9791f;
+    --amber:#a3671a;
+    --amber-dark:#684211;
     --danger:#c04a4a;
-    --muted:#6b7280;
+    --muted:#5d636f;
   }
   *{box-sizing:border-box;}
   body{
@@ -47,7 +47,7 @@
   .mono{font-family:'JetBrains Mono',monospace;}
 
   header{
-    padding:38px 24px 28px;
+    padding:26px 24px 18px;
     max-width:920px;
     margin:0 auto;
   }
@@ -60,7 +60,7 @@
     display:flex;
     align-items:center;
     gap:8px;
-    margin-bottom:10px;
+    margin-bottom:8px;
   }
   .eyebrow::before{
     content:"";
@@ -74,7 +74,7 @@
     font-size:34px;
     font-weight:800;
     letter-spacing:-0.02em;
-    margin:0 0 10px;
+    margin:0 0 8px;
   }
   header p{
     color:var(--muted);
@@ -92,7 +92,7 @@
     background:var(--line);
     border-radius:12px;
     padding:3px;
-    margin-bottom:28px;
+    margin-bottom:20px;
   }
   .tab{
     flex:1;
@@ -140,6 +140,10 @@
     border-radius:6px;
     padding:3px 7px;
   }
+  .card h2 .icon{
+    flex-shrink:0;
+    color:var(--teal-dark);
+  }
   .card .desc{
     color:var(--muted);
     font-size:13.5px;
@@ -174,6 +178,9 @@
   }
 
   .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;}
+  .pw-wrap{position:relative; flex:1; min-width:200px; display:flex; align-items:center;}
+  .pw-wrap .pw-icon{position:absolute; left:11px; color:var(--muted); pointer-events:none;}
+  #pw-pdf{width:100%; padding-left:34px; text-overflow:ellipsis;}
   select, input[type=text], input[type=password]{
     font-family:'Inter',sans-serif;
     font-size:13.5px;
@@ -262,7 +269,7 @@
   <div class="panel active" id="panel-unlock">
 
     <div class="card">
-      <h2><span class="num">01</span> PDF — hapus proteksi</h2>
+      <h2><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg><span class="num">01</span> PDF — hapus proteksi</h2>
       <p class="desc">Untuk PDF yang <b>bisa dibuka tanpa password</b> tapi dibatasi print/copy/edit. Tool ini merender ulang setiap halaman menjadi PDF baru tanpa enkripsi. Jika PDF meminta password untuk <b>membuka</b>, masukkan password itu di kolom di bawah — tool ini tidak bisa menebak/membobol password yang tidak diketahui.</p>
       <div class="dropzone" id="dz-pdf">
         <div class="hint">Klik atau seret file .pdf ke sini</div>
@@ -270,7 +277,10 @@
         <input type="file" id="file-pdf" accept="application/pdf">
       </div>
       <div class="row">
-        <input type="password" id="pw-pdf" placeholder="Password (isi jika file meminta password saat dibuka)" style="flex:1;min-width:240px;">
+        <div class="pw-wrap">
+          <svg class="pw-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input type="password" id="pw-pdf" placeholder="Password (jika file terkunci)">
+        </div>
         <button id="btn-pdf">Hapus Proteksi PDF</button>
       </div>
       <div class="status" id="status-pdf"></div>
@@ -278,7 +288,7 @@
     </div>
 
     <div class="card">
-      <h2><span class="num">02</span> Word (.docx) / Excel (.xlsx) — hapus proteksi</h2>
+      <h2><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg><span class="num">02</span> Word (.docx) / Excel (.xlsx) — hapus proteksi</h2>
       <p class="desc">Menghapus pengaturan "Restrict Editing" (Word) atau "Protect Sheet/Workbook" (Excel) dari file yang <b>tidak dikunci password untuk dibuka</b>. Jika file dienkripsi penuh dengan password buka, tool ini akan memberi tahu Anda bahwa itu di luar kemampuannya.</p>
       <div class="dropzone" id="dz-office">
         <div class="hint">Klik atau seret file .docx / .xlsx ke sini</div>
@@ -297,7 +307,7 @@
   <div class="panel" id="panel-convert">
 
     <div class="card">
-      <h2><span class="num">01</span> Pilih arah konversi</h2>
+      <h2><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 5h18"/><polyline points="7 23 3 19 7 15"/><path d="M21 19H3"/></svg><span class="num">01</span> Pilih arah konversi</h2>
       <div class="row swap">
         <select id="conv-type">
           <option value="pdf2docx">PDF → Word (.docx, teks)</option>
