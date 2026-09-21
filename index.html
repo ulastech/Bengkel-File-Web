@@ -11,7 +11,7 @@
   dihitung ulang (SHA-256 dari isi persis di antara tag <script>...</script>,
   encode base64), atau browser akan memblokir seluruh app.
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.sheetjs.com https://static.cloudflareinsights.com 'sha256-gD3wJqNE+kanCboymWFl3ZH7kn644VSkdyCaNjJyiS8='; worker-src 'self' https://cdnjs.cloudflare.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' data: blob: https://fonts.googleapis.com https://cloudflareinsights.com; object-src 'none'; base-uri 'none'; form-action 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.sheetjs.com https://static.cloudflareinsights.com 'sha256-nR0CNDVGOA6FY1VXCGmXAEmkL3WNVtYE/VgRQQZCDVc='; worker-src 'self' https://cdnjs.cloudflare.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' data: blob: https://fonts.googleapis.com https://cloudflareinsights.com; object-src 'none'; base-uri 'none'; form-action 'none';">
 <title>Bengkel File — Buka Proteksi & Konversi Format</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -244,6 +244,68 @@
     font-weight:700;
   }
 
+  .history-panel{margin-bottom:20px;}
+  .history-toggle{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:11px 14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--teal-dark);
+    cursor:pointer;
+    text-align:left;
+  }
+  .history-toggle:hover{background:#f2f9f8;}
+  .history-toggle .count{
+    background:#e7f3f1;
+    color:var(--teal-dark);
+    border-radius:999px;
+    padding:1px 7px;
+    font-size:11px;
+  }
+  .history-toggle .chevron{margin-left:auto; transition:transform .15s; flex-shrink:0;}
+  .history-toggle.open .chevron{transform:rotate(180deg);}
+  .history-body{
+    border:1px solid var(--line);
+    border-top:none;
+    border-radius:0 0 10px 10px;
+    background:var(--panel);
+    padding:4px 14px 14px;
+  }
+  .history-body.hidden{display:none;}
+  .history-list{max-height:260px; overflow-y:auto; margin:6px 0;}
+  .history-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 2px;
+    border-bottom:1px dashed var(--line);
+    font-size:12.5px;
+  }
+  .history-item:last-child{border-bottom:none;}
+  .history-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .history-item .dot.unlock{background:var(--teal);}
+  .history-item .dot.convert{background:var(--amber);}
+  .history-item .name{font-family:'JetBrains Mono',monospace; color:var(--ink); word-break:break-all; flex:1; min-width:120px;}
+  .history-item .type{color:var(--muted); font-size:11.5px; white-space:nowrap;}
+  .history-item .time{color:var(--muted); font-size:11px; white-space:nowrap;}
+  .history-empty{color:var(--muted); font-size:12.5px; line-height:1.5; padding:10px 2px;}
+  .history-clear{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--danger);
+    font-size:12px;
+    padding:7px 12px;
+    margin-top:8px;
+  }
+  .history-clear:hover{background:#fbeaea;}
+
   footer{
     max-width:920px;margin:0 auto;padding:0 24px 60px;
     color:var(--muted);font-size:12px;line-height:1.6;
@@ -272,9 +334,9 @@
       <h2><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg><span class="num">01</span> PDF — hapus proteksi</h2>
       <p class="desc">Untuk PDF yang <b>bisa dibuka tanpa password</b> tapi dibatasi print/copy/edit. Tool ini merender ulang setiap halaman menjadi PDF baru tanpa enkripsi. Jika PDF meminta password untuk <b>membuka</b>, masukkan password itu di kolom di bawah — tool ini tidak bisa menebak/membobol password yang tidak diketahui.</p>
       <div class="dropzone" id="dz-pdf">
-        <div class="hint">Klik atau seret file .pdf ke sini</div>
+        <div class="hint">Klik atau seret file .pdf ke sini (bisa pilih beberapa sekaligus)</div>
         <div class="fname" id="fname-pdf"></div>
-        <input type="file" id="file-pdf" accept="application/pdf">
+        <input type="file" id="file-pdf" accept="application/pdf" multiple>
       </div>
       <div class="row">
         <div class="pw-wrap">
@@ -284,16 +346,16 @@
         <button id="btn-pdf">Hapus Proteksi PDF</button>
       </div>
       <div class="status" id="status-pdf"></div>
-      <div class="note">Catatan: hasil berupa PDF baru berbasis gambar per halaman (tampilan identik), sehingga teks tidak lagi bisa di-select/copy secara langsung. Ini trade-off yang diperlukan agar proteksi benar-benar hilang.</div>
+      <div class="note">Catatan: hasil berupa PDF baru berbasis gambar per halaman (tampilan identik), sehingga teks tidak lagi bisa di-select/copy secara langsung. Ini trade-off yang diperlukan agar proteksi benar-benar hilang. Kalau pilih lebih dari 1 file sekaligus, semua hasil digabung jadi satu file ZIP untuk diunduh.</div>
     </div>
 
     <div class="card">
       <h2><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg><span class="num">02</span> Word (.docx) / Excel (.xlsx) — hapus proteksi</h2>
       <p class="desc">Menghapus pengaturan "Restrict Editing" (Word) atau "Protect Sheet/Workbook" (Excel) dari file yang <b>tidak dikunci password untuk dibuka</b>. Jika file dienkripsi penuh dengan password buka, tool ini akan memberi tahu Anda bahwa itu di luar kemampuannya.</p>
       <div class="dropzone" id="dz-office">
-        <div class="hint">Klik atau seret file .docx / .xlsx ke sini</div>
+        <div class="hint">Klik atau seret file .docx / .xlsx ke sini (bisa pilih beberapa sekaligus)</div>
         <div class="fname" id="fname-office"></div>
-        <input type="file" id="file-office" accept=".docx,.xlsx">
+        <input type="file" id="file-office" accept=".docx,.xlsx" multiple>
       </div>
       <div class="row">
         <button id="btn-office">Hapus Proteksi</button>
@@ -330,10 +392,24 @@
       </div>
       <div class="status" id="status-conv"></div>
       <div class="note">
-        <b>Catatan kualitas hasil:</b> konversi PDF→Word mengekstrak teks polos (tanpa tata letak/gambar asli). Konversi Word→PDF mengikuti tampilan render HTML sehingga format kompleks (tabel rumit, kolom) bisa sedikit berbeda dari aslinya. Untuk dokumen penting dengan format rumit, cek kembali hasilnya sebelum dipakai.
+        <b>Catatan kualitas hasil:</b> konversi PDF→Word mengekstrak teks polos (tanpa tata letak/gambar asli). Konversi Word→PDF mengikuti tampilan render HTML sehingga format kompleks (tabel rumit, kolom) bisa sedikit berbeda dari aslinya. Untuk dokumen penting dengan format rumit, cek kembali hasilnya sebelum dipakai. Bisa pilih beberapa file sekaligus (kecuali Gambar→PDF yang memang selalu digabung jadi 1 PDF) — hasilnya otomatis dibungkus jadi satu file ZIP kalau lebih dari 1 file.
       </div>
     </div>
 
+  </div>
+
+  <div class="history-panel">
+    <button class="history-toggle" id="history-toggle" type="button" aria-expanded="false" aria-controls="history-body">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+      Riwayat Proses
+      <span class="count" id="history-count">0</span>
+      <svg class="chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="history-body hidden" id="history-body">
+      <div class="history-list" id="history-list"></div>
+      <div class="history-empty" id="history-empty">Belum ada riwayat proses. Riwayat tersimpan di browser ini saja (localStorage), tidak pernah dikirim ke mana pun.</div>
+      <button class="history-clear" id="history-clear" type="button">Bersihkan riwayat</button>
+    </div>
   </div>
 
 </div>
@@ -390,21 +466,143 @@ function setBusy(btn, busy, busyLabel){
     btn.disabled = false;
   }
 }
+
+// ---------- riwayat proses (localStorage saja, tidak pernah dikirim keluar browser) ----------
+const HISTORY_KEY = 'bengkel-file-history';
+const HISTORY_MAX = 20;
+function loadHistory(){
+  try{
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  }catch(e){ return []; }
+}
+function saveHistory(list){
+  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }catch(e){ /* localStorage penuh/diblokir (mis. mode privat) -- abaikan, bukan fitur inti */ }
+}
+function addHistory(fileName, typeLabel, kind){
+  const list = loadHistory();
+  list.unshift({ file: fileName, type: typeLabel, kind, time: Date.now() });
+  saveHistory(list.slice(0, HISTORY_MAX));
+  renderHistory();
+}
+function formatHistoryTime(ts){
+  try{
+    return new Date(ts).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }catch(e){ return ''; }
+}
+function renderHistory(){
+  const list = loadHistory();
+  document.getElementById('history-count').textContent = list.length;
+  const listEl = document.getElementById('history-list');
+  const emptyEl = document.getElementById('history-empty');
+  listEl.textContent = '';
+  emptyEl.style.display = list.length ? 'none' : 'block';
+  for(const item of list){
+    const row = document.createElement('div');
+    row.className = 'history-item';
+    const dot = document.createElement('span');
+    dot.className = 'dot ' + item.kind;
+    const name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = item.file;
+    const type = document.createElement('span');
+    type.className = 'type';
+    type.textContent = item.type;
+    const time = document.createElement('span');
+    time.className = 'time';
+    time.textContent = formatHistoryTime(item.time);
+    row.append(dot, name, type, time);
+    listEl.appendChild(row);
+  }
+}
+document.getElementById('history-toggle').addEventListener('click', ()=>{
+  const body = document.getElementById('history-body');
+  const btn = document.getElementById('history-toggle');
+  const nowHidden = body.classList.toggle('hidden');
+  btn.classList.toggle('open', !nowHidden);
+  btn.setAttribute('aria-expanded', String(!nowHidden));
+});
+document.getElementById('history-clear').addEventListener('click', ()=>{
+  saveHistory([]);
+  renderHistory();
+});
+renderHistory();
+
 function wireDropzone(dzId, inputId, fnameId, filterExt){
   const dz = document.getElementById(dzId);
   const input = document.getElementById(inputId);
   const fname = document.getElementById(fnameId);
+  function updateFname(){
+    if(!input.files.length){ fname.textContent = ''; return; }
+    fname.textContent = input.files.length === 1
+      ? input.files[0].name
+      : `${input.files.length} file dipilih: ${Array.from(input.files).map(f=>f.name).join(', ')}`;
+  }
   dz.addEventListener('click', ()=>input.click());
   dz.addEventListener('dragover', e=>{e.preventDefault(); dz.classList.add('drag');});
   dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
   dz.addEventListener('drop', e=>{
     e.preventDefault(); dz.classList.remove('drag');
-    if(e.dataTransfer.files.length){ input.files = e.dataTransfer.files; fname.textContent = input.files[0].name; }
+    if(e.dataTransfer.files.length){ input.files = e.dataTransfer.files; updateFname(); }
   });
-  input.addEventListener('change', ()=>{
-    if(input.files.length) fname.textContent = input.files[0].name;
-  });
+  input.addEventListener('change', updateFname);
   return {input, fname};
+}
+
+// ---------- batch processing (banyak file sekaligus -> 1 file kalau hasilnya cuma
+// satu, atau digabung jadi .zip kalau hasilnya lebih dari satu) ----------
+async function runBatch({ files, statusId, processOne, zipNamePrefix, historyType, historyKind }){
+  const total = files.length;
+  const results = [];
+  const errors = [];
+  for(let i=0;i<total;i++){
+    const file = files[i];
+    setStatus(statusId, `Memproses file ${i+1} dari ${total}: ${file.name}...`, 'wait');
+    try{
+      const out = await processOne(file, (msg)=>setStatus(statusId, `[${i+1}/${total}] ${file.name}: ${msg}`, 'wait'));
+      results.push(out);
+      if(historyType) addHistory(file.name, historyType, historyKind || 'convert');
+    }catch(err){
+      console.error(err);
+      errors.push({ name: file.name, err });
+    }
+  }
+
+  let outputFilename = null;
+  if(results.length === 1){
+    download(results[0].blob, results[0].filename);
+    outputFilename = results[0].filename;
+  } else if(results.length > 1){
+    const zip = new JSZip();
+    const used = new Set();
+    for(const r of results){
+      let name = r.filename, dot = name.lastIndexOf('.'), n = 2;
+      while(used.has(name)){
+        name = dot > 0 ? `${r.filename.slice(0,dot)}-${n}${r.filename.slice(dot)}` : `${r.filename}-${n}`;
+        n++;
+      }
+      used.add(name);
+      zip.file(name, r.blob);
+    }
+    setStatus(statusId, `Menyusun ${results.length} hasil jadi satu file ZIP...`, 'wait');
+    const zipBlob = await zip.generateAsync({type:'blob'});
+    outputFilename = `${zipNamePrefix}-${results.length}file.zip`;
+    download(zipBlob, outputFilename);
+  }
+
+  return { results, errors, total, outputFilename };
+}
+function batchSummaryStatus(statusId, { results, errors, total, outputFilename }, itemLabel){
+  if(results.length === 0){
+    setStatus(statusId, `Semua ${total} file gagal diproses. Cek console browser untuk detail teknis.`, 'err');
+    return;
+  }
+  const failNote = errors.length ? ` ${errors.length} dari ${total} ${itemLabel} gagal diproses (lihat console untuk detail).` : '';
+  const msg = results.length > 1
+    ? `Selesai! ${results.length} ${itemLabel} berhasil diproses dan digabung jadi 1 file ZIP (${outputFilename}).${failNote}`
+    : `Selesai! 1 ${itemLabel} berhasil diproses dan diunduh (${outputFilename}).${failNote}`;
+  setStatus(statusId, msg, errors.length ? 'info' : 'ok');
 }
 const pdfPick = wireDropzone('dz-pdf','file-pdf','fname-pdf');
 const officePick = wireDropzone('dz-office','file-office','fname-office');
@@ -413,45 +611,68 @@ const convPick = wireDropzone('dz-conv','file-conv','fname-conv');
 function extOf(name){ return name.split('.').pop().toLowerCase(); }
 
 // ================= 1) PDF UNLOCK =================
+async function processOnePdf(file, password, onProgress){
+  const buf = await file.arrayBuffer();
+  let pdf;
+  try{
+    pdf = await pdfjsLib.getDocument({data: buf, password}).promise;
+  }catch(e){
+    if(e.name === 'PasswordException'){
+      const err = new Error(`File "${file.name}" butuh password yang benar untuk dibuka.`);
+      err.friendlyMessage = 'File ini butuh password untuk dibuka. Masukkan password itu di kolom di atas lalu coba lagi.';
+      throw err;
+    }
+    throw e;
+  }
+  const outDoc = await PDFDocument.create();
+  for(let i=1;i<=pdf.numPages;i++){
+    onProgress(`Merender halaman ${i} dari ${pdf.numPages}...`);
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({scale:2});
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({canvasContext: ctx, viewport}).promise;
+    const pngData = canvas.toDataURL('image/png');
+    const pngBytes = await (await fetch(pngData)).arrayBuffer();
+    const img = await outDoc.embedPng(pngBytes);
+    const pdfPage = outDoc.addPage([viewport.width/2, viewport.height/2]);
+    pdfPage.drawImage(img, {x:0, y:0, width: viewport.width/2, height: viewport.height/2});
+  }
+  onProgress('Menyimpan file...');
+  const outBytes = await outDoc.save();
+  return { blob: new Blob([outBytes], {type:'application/pdf'}), filename: 'unprotected-' + file.name };
+}
 document.getElementById('btn-pdf').addEventListener('click', async ()=>{
-  const file = pdfPick.input.files[0];
-  if(!file){ setStatus('status-pdf','Pilih file PDF terlebih dahulu.','err'); return; }
-  if(!validateFileSize(file, 'status-pdf')) return;
+  const files = pdfPick.input.files;
+  if(!files || !files.length){ setStatus('status-pdf','Pilih file PDF terlebih dahulu.','err'); return; }
+  for(const f of files){ if(!validateFileSize(f, 'status-pdf')) return; }
   const pw = document.getElementById('pw-pdf').value || '';
   const btn = document.getElementById('btn-pdf');
   setBusy(btn, true);
   try{
-    setStatus('status-pdf','Membaca & mendekripsi PDF...','wait');
-    const buf = await file.arrayBuffer();
-    let pdf;
-    try{
-      pdf = await pdfjsLib.getDocument({data: buf, password: pw}).promise;
-    }catch(e){
-      if(e.name === 'PasswordException'){
-        setStatus('status-pdf','File ini butuh password untuk dibuka. Masukkan password di kolom di atas lalu coba lagi.','err');
-        setBusy(btn, false); return;
+    if(files.length === 1){
+      const file = files[0];
+      setStatus('status-pdf','Membaca & mendekripsi PDF...','wait');
+      let result;
+      try{
+        result = await processOnePdf(file, pw, (msg)=>setStatus('status-pdf', msg, 'wait'));
+      }catch(e){
+        if(e.friendlyMessage){ setStatus('status-pdf', e.friendlyMessage, 'err'); return; }
+        throw e;
       }
-      throw e;
+      setStatus('status-pdf','Menyimpan file...','wait');
+      download(result.blob, result.filename);
+      addHistory(file.name, 'Buka Proteksi PDF', 'unlock');
+      setStatus('status-pdf','Selesai! PDF tanpa proteksi berhasil diunduh.','ok');
+    } else {
+      const outcome = await runBatch({
+        files, statusId:'status-pdf', zipNamePrefix:'unprotected-pdf',
+        processOne:(file,onProgress)=>processOnePdf(file, pw, onProgress),
+        historyType:'Buka Proteksi PDF', historyKind:'unlock',
+      });
+      batchSummaryStatus('status-pdf', outcome, 'file');
     }
-    const outDoc = await PDFDocument.create();
-    for(let i=1;i<=pdf.numPages;i++){
-      setStatus('status-pdf',`Merender halaman ${i} dari ${pdf.numPages}...`,'wait');
-      const page = await pdf.getPage(i);
-      const viewport = page.getViewport({scale:2});
-      const canvas = document.createElement('canvas');
-      canvas.width = viewport.width; canvas.height = viewport.height;
-      const ctx = canvas.getContext('2d');
-      await page.render({canvasContext: ctx, viewport}).promise;
-      const pngData = canvas.toDataURL('image/png');
-      const pngBytes = await (await fetch(pngData)).arrayBuffer();
-      const img = await outDoc.embedPng(pngBytes);
-      const pdfPage = outDoc.addPage([viewport.width/2, viewport.height/2]);
-      pdfPage.drawImage(img, {x:0, y:0, width: viewport.width/2, height: viewport.height/2});
-    }
-    setStatus('status-pdf','Menyimpan file...','wait');
-    const outBytes = await outDoc.save();
-    download(new Blob([outBytes], {type:'application/pdf'}), 'unprotected-' + file.name);
-    setStatus('status-pdf','Selesai! PDF tanpa proteksi berhasil diunduh.','ok');
   }catch(err){
     console.error(err);
     setStatus('status-pdf','Gagal memproses PDF. Pastikan file adalah PDF yang valid dan tidak rusak, lalu coba lagi. (Detail teknis dicatat di console browser untuk keperluan debug.)', 'err');
@@ -461,67 +682,105 @@ document.getElementById('btn-pdf').addEventListener('click', async ()=>{
 });
 
 // ================= 2) DOCX / XLSX UNLOCK =================
-document.getElementById('btn-office').addEventListener('click', async ()=>{
-  const file = officePick.input.files[0];
-  if(!file){ setStatus('status-office','Pilih file .docx atau .xlsx terlebih dahulu.','err'); return; }
-  if(!validateFileSize(file, 'status-office')) return;
+async function processOneOffice(file, onProgress){
   const ext = extOf(file.name);
+  onProgress('Membuka struktur file...');
+  const buf = await file.arrayBuffer();
+  let zip;
+  try{
+    zip = await JSZip.loadAsync(buf);
+  }catch(e){
+    const err = new Error(`File "${file.name}" terenkripsi penuh, tidak bisa diproses.`);
+    err.friendlyMessage = 'File ini terenkripsi penuh (butuh password untuk dibuka) sehingga tidak bisa diproses tool ini.';
+    throw err;
+  }
+
+  let changed = false;
+
+  if(ext === 'docx'){
+    const path = 'word/settings.xml';
+    if(zip.file(path)){
+      let xml = await zip.file(path).async('text');
+      const before = xml;
+      xml = xml.replace(/<w:documentProtection[^>]*\/>/g, '');
+      xml = xml.replace(/<w:documentProtection[^>]*>[\s\S]*?<\/w:documentProtection>/g, '');
+      xml = xml.replace(/<w:writeProtection[^>]*\/>/g, '');
+      if(xml !== before){ zip.file(path, xml); changed = true; }
+    }
+  } else if(ext === 'xlsx'){
+    // workbook-level protection
+    const wbPath = 'xl/workbook.xml';
+    if(zip.file(wbPath)){
+      let xml = await zip.file(wbPath).async('text');
+      const before = xml;
+      xml = xml.replace(/<workbookProtection[^>]*\/>/g, '');
+      if(xml !== before){ zip.file(wbPath, xml); changed = true; }
+    }
+    // per-sheet protection
+    const sheetFiles = Object.keys(zip.files).filter(p => /^xl\/worksheets\/sheet\d+\.xml$/.test(p));
+    for(const p of sheetFiles){
+      let xml = await zip.file(p).async('text');
+      const before = xml;
+      xml = xml.replace(/<sheetProtection[^>]*\/>/g, '');
+      if(xml !== before){ zip.file(p, xml); changed = true; }
+    }
+  } else {
+    const err = new Error(`File "${file.name}": format tidak dikenali.`);
+    err.friendlyMessage = 'Format tidak dikenali. Gunakan file .docx atau .xlsx.';
+    throw err;
+  }
+
+  if(!changed){
+    return { blob: new Blob([buf], {type: file.type || 'application/octet-stream'}), filename: 'unlocked-' + file.name, unchanged: true };
+  }
+  onProgress('Menyusun ulang file...');
+  const outBlob = await zip.generateAsync({type:'blob', mimeType: file.type || 'application/octet-stream'});
+  return { blob: outBlob, filename: 'unlocked-' + file.name, unchanged: false };
+}
+document.getElementById('btn-office').addEventListener('click', async ()=>{
+  const files = officePick.input.files;
+  if(!files || !files.length){ setStatus('status-office','Pilih file .docx atau .xlsx terlebih dahulu.','err'); return; }
+  for(const f of files){ if(!validateFileSize(f, 'status-office')) return; }
   const btn = document.getElementById('btn-office');
   setBusy(btn, true);
   try{
-    setStatus('status-office','Membuka struktur file...','wait');
-    const buf = await file.arrayBuffer();
-    let zip;
-    try{
-      zip = await JSZip.loadAsync(buf);
-    }catch(e){
-      setStatus('status-office','File ini terenkripsi penuh (butuh password untuk dibuka) sehingga tidak bisa diproses tool ini.','err');
-      setBusy(btn, false); return;
-    }
-
-    let changed = false;
-
-    if(ext === 'docx'){
-      const path = 'word/settings.xml';
-      if(zip.file(path)){
-        let xml = await zip.file(path).async('text');
-        const before = xml;
-        xml = xml.replace(/<w:documentProtection[^>]*\/>/g, '');
-        xml = xml.replace(/<w:documentProtection[^>]*>[\s\S]*?<\/w:documentProtection>/g, '');
-        xml = xml.replace(/<w:writeProtection[^>]*\/>/g, '');
-        if(xml !== before){ zip.file(path, xml); changed = true; }
+    if(files.length === 1){
+      const file = files[0];
+      let result;
+      try{
+        result = await processOneOffice(file, (msg)=>setStatus('status-office', msg, 'wait'));
+      }catch(e){
+        if(e.friendlyMessage){ setStatus('status-office', e.friendlyMessage, 'err'); return; }
+        throw e;
       }
-    } else if(ext === 'xlsx'){
-      // workbook-level protection
-      const wbPath = 'xl/workbook.xml';
-      if(zip.file(wbPath)){
-        let xml = await zip.file(wbPath).async('text');
-        const before = xml;
-        xml = xml.replace(/<workbookProtection[^>]*\/>/g, '');
-        if(xml !== before){ zip.file(wbPath, xml); changed = true; }
+      if(result.unchanged){
+        addHistory(file.name, 'Buka Proteksi DOCX/XLSX (tidak ada proteksi)', 'unlock');
+        setStatus('status-office','Tidak ditemukan proteksi edit/sheet pada file ini (atau proteksi tersembunyi lewat cara lain). File asli tidak diubah.','info');
+        return;
       }
-      // per-sheet protection
-      const sheetFiles = Object.keys(zip.files).filter(p => /^xl\/worksheets\/sheet\d+\.xml$/.test(p));
-      for(const p of sheetFiles){
-        let xml = await zip.file(p).async('text');
-        const before = xml;
-        xml = xml.replace(/<sheetProtection[^>]*\/>/g, '');
-        if(xml !== before){ zip.file(p, xml); changed = true; }
-      }
+      download(result.blob, result.filename);
+      addHistory(file.name, 'Buka Proteksi DOCX/XLSX', 'unlock');
+      setStatus('status-office','Selesai! Proteksi berhasil dihapus dan file diunduh.','ok');
     } else {
-      setStatus('status-office','Format tidak dikenali. Gunakan file .docx atau .xlsx.','err');
-      setBusy(btn, false); return;
+      const outcome = await runBatch({
+        files, statusId:'status-office', zipNamePrefix:'unlocked-office',
+        processOne: processOneOffice,
+        historyType:'Buka Proteksi DOCX/XLSX', historyKind:'unlock',
+      });
+      const { results, errors, total, outputFilename } = outcome;
+      if(results.length === 0){
+        setStatus('status-office', `Semua ${total} file gagal diproses. Cek console browser untuk detail teknis.`, 'err');
+      } else {
+        const changedCount = results.filter(r=>!r.unchanged).length;
+        const unchangedCount = results.length - changedCount;
+        const failNote = errors.length ? ` ${errors.length} dari ${total} file gagal diproses (lihat console).` : '';
+        const unchangedNote = unchangedCount ? ` ${unchangedCount} file tidak memiliki proteksi (disalin apa adanya).` : '';
+        const msg = results.length > 1
+          ? `Selesai! ${changedCount} dari ${results.length} file berhasil dihapus proteksinya, digabung jadi 1 file ZIP (${outputFilename}).${unchangedNote}${failNote}`
+          : `Selesai! 1 file berhasil diproses dan diunduh (${outputFilename}).${failNote}`;
+        setStatus('status-office', msg, errors.length ? 'info' : 'ok');
+      }
     }
-
-    if(!changed){
-      setStatus('status-office','Tidak ditemukan proteksi edit/sheet pada file ini (atau proteksi tersembunyi lewat cara lain). File asli tidak diubah.','info');
-      setBusy(btn, false); return;
-    }
-
-    setStatus('status-office','Menyusun ulang file...','wait');
-    const outBlob = await zip.generateAsync({type:'blob', mimeType: file.type || 'application/octet-stream'});
-    download(outBlob, 'unlocked-' + file.name);
-    setStatus('status-office','Selesai! Proteksi berhasil dihapus dan file diunduh.','ok');
   }catch(err){
     console.error(err);
     setStatus('status-office','Gagal memproses file. Pastikan file .docx/.xlsx valid dan tidak rusak, lalu coba lagi. (Detail teknis dicatat di console browser untuk keperluan debug.)', 'err');
@@ -532,20 +791,20 @@ document.getElementById('btn-office').addEventListener('click', async ()=>{
 
 // ================= 3) CONVERT =================
 const convHints = {
-  pdf2docx: {accept:'application/pdf', hint:'Klik atau seret file .pdf'},
-  pdf2img: {accept:'application/pdf', hint:'Klik atau seret file .pdf'},
-  docx2pdf: {accept:'.docx', hint:'Klik atau seret file .docx'},
-  docx2txt: {accept:'.docx', hint:'Klik atau seret file .docx'},
-  xlsx2csv: {accept:'.xlsx,.xls', hint:'Klik atau seret file .xlsx'},
-  xlsx2json: {accept:'.xlsx,.xls', hint:'Klik atau seret file .xlsx'},
-  csv2xlsx: {accept:'.csv', hint:'Klik atau seret file .csv'},
-  img2pdf: {accept:'image/png,image/jpeg', hint:'Klik atau seret satu/lebih gambar .jpg/.png', multi:true},
+  pdf2docx: {accept:'application/pdf', hint:'Klik atau seret file .pdf (bisa pilih beberapa sekaligus)'},
+  pdf2img: {accept:'application/pdf', hint:'Klik atau seret file .pdf (bisa pilih beberapa sekaligus)'},
+  docx2pdf: {accept:'.docx', hint:'Klik atau seret file .docx (bisa pilih beberapa sekaligus)'},
+  docx2txt: {accept:'.docx', hint:'Klik atau seret file .docx (bisa pilih beberapa sekaligus)'},
+  xlsx2csv: {accept:'.xlsx,.xls', hint:'Klik atau seret file .xlsx (bisa pilih beberapa sekaligus)'},
+  xlsx2json: {accept:'.xlsx,.xls', hint:'Klik atau seret file .xlsx (bisa pilih beberapa sekaligus)'},
+  csv2xlsx: {accept:'.csv', hint:'Klik atau seret file .csv (bisa pilih beberapa sekaligus)'},
+  img2pdf: {accept:'image/png,image/jpeg', hint:'Klik atau seret satu/lebih gambar .jpg/.png (digabung jadi 1 PDF)'},
 };
 const convTypeSel = document.getElementById('conv-type');
 function updateConvUI(){
   const cfg = convHints[convTypeSel.value];
   document.getElementById('file-conv').setAttribute('accept', cfg.accept);
-  document.getElementById('file-conv').multiple = !!cfg.multi;
+  document.getElementById('file-conv').multiple = true;
   document.getElementById('conv-hint').textContent = cfg.hint;
 }
 convTypeSel.addEventListener('change', updateConvUI);
@@ -578,6 +837,108 @@ async function buildSimpleDocx(paragraphs){
   return await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
 }
 
+async function processOneConvert(mode, file, onProgress){
+  if(mode === 'pdf2docx'){
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    const paragraphs = [];
+    for(let i=1;i<=pdf.numPages;i++){
+      onProgress(`Mengekstrak teks halaman ${i} dari ${pdf.numPages}...`);
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      const text = tc.items.map(it=>it.str).join(' ');
+      paragraphs.push(`— Halaman ${i} —`);
+      paragraphs.push(text);
+    }
+    const blob = await buildSimpleDocx(paragraphs);
+    return { blob, filename: file.name.replace(/\.pdf$/i,'') + '.docx' };
+
+  } else if(mode === 'pdf2img'){
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    const zip = new JSZip();
+    for(let i=1;i<=pdf.numPages;i++){
+      onProgress(`Merender halaman ${i}/${pdf.numPages}...`);
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({scale:2});
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width; canvas.height = viewport.height;
+      await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
+      const dataUrl = canvas.toDataURL('image/png');
+      const bytes = await (await fetch(dataUrl)).arrayBuffer();
+      zip.file(`halaman-${String(i).padStart(2,'0')}.png`, bytes);
+    }
+    const blob = await zip.generateAsync({type:'blob'});
+    return { blob, filename: file.name.replace(/\.pdf$/i,'') + '-images.zip' };
+
+  } else if(mode === 'docx2txt' || mode === 'docx2pdf'){
+    const buf = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({arrayBuffer: buf});
+    if(mode === 'docx2txt'){
+      const tmp = document.createElement('div');
+      tmp.innerHTML = result.value;
+      const text = tmp.innerText;
+      return { blob: new Blob([text], {type:'text/plain'}), filename: file.name.replace(/\.docx$/i,'') + '.txt' };
+    } else {
+      const container = document.createElement('div');
+      container.style.cssText = 'position:fixed;left:-9999px;top:0;width:750px;padding:20px;background:#fff;font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#000;';
+      container.innerHTML = result.value;
+      document.body.appendChild(container);
+      onProgress('Merender tampilan dokumen...');
+      const canvas = await html2canvas(container, {scale:2});
+      document.body.removeChild(container);
+      const { jsPDF } = window.jspdf;
+      const pdfDoc = new jsPDF({unit:'pt', format:'a4'});
+      const pageW = pdfDoc.internal.pageSize.getWidth();
+      const pageH = pdfDoc.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      let heightLeft = imgH;
+      let position = 0;
+      const imgData = canvas.toDataURL('image/png');
+      pdfDoc.addImage(imgData, 'PNG', 0, position, imgW, imgH);
+      heightLeft -= pageH;
+      while(heightLeft > 0){
+        position = heightLeft - imgH;
+        pdfDoc.addPage();
+        pdfDoc.addImage(imgData, 'PNG', 0, position, imgW, imgH);
+        heightLeft -= pageH;
+      }
+      return { blob: pdfDoc.output('blob'), filename: file.name.replace(/\.docx$/i,'') + '.pdf' };
+    }
+
+  } else if(mode === 'xlsx2csv' || mode === 'xlsx2json'){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const firstSheet = wb.SheetNames[0];
+    const ws = wb.Sheets[firstSheet];
+    if(mode === 'xlsx2csv'){
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      return { blob: new Blob([csv], {type:'text/csv'}), filename: file.name.replace(/\.xlsx?$/i,'') + '.csv' };
+    } else {
+      const json = XLSX.utils.sheet_to_json(ws);
+      return { blob: new Blob([JSON.stringify(json, null, 2)], {type:'application/json'}), filename: file.name.replace(/\.xlsx?$/i,'') + '.json' };
+    }
+
+  } else if(mode === 'csv2xlsx'){
+    const text = await file.text();
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(text.replace(/\r?\n+$/, '').split(/\r?\n/).map(line => line.split(',')));
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    const out = XLSX.write(wb, {type:'array', bookType:'xlsx'});
+    return { blob: new Blob([out], {type:'application/octet-stream'}), filename: file.name.replace(/\.csv$/i,'') + '.xlsx' };
+  }
+}
+const convLabels = {
+  pdf2docx: 'Konversi PDF → Word',
+  pdf2img: 'Konversi PDF → Gambar',
+  docx2pdf: 'Konversi Word → PDF',
+  docx2txt: 'Konversi Word → Teks',
+  xlsx2csv: 'Konversi Excel → CSV',
+  xlsx2json: 'Konversi Excel → JSON',
+  csv2xlsx: 'Konversi CSV → Excel',
+  img2pdf: 'Konversi Gambar → PDF',
+};
 document.getElementById('btn-conv').addEventListener('click', async ()=>{
   const files = convPick.input.files;
   if(!files || !files.length){ setStatus('status-conv','Pilih file terlebih dahulu.','err'); return; }
@@ -588,99 +949,10 @@ document.getElementById('btn-conv').addEventListener('click', async ()=>{
   const btn = document.getElementById('btn-conv');
   setBusy(btn, true);
   try{
-    setStatus('status-conv','Memproses...','wait');
-    const file = files[0];
-
-    if(mode === 'pdf2docx'){
-      const buf = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({data: buf}).promise;
-      const paragraphs = [];
-      for(let i=1;i<=pdf.numPages;i++){
-        const page = await pdf.getPage(i);
-        const tc = await page.getTextContent();
-        const text = tc.items.map(it=>it.str).join(' ');
-        paragraphs.push(`— Halaman ${i} —`);
-        paragraphs.push(text);
-      }
-      const blob = await buildSimpleDocx(paragraphs);
-      download(blob, file.name.replace(/\.pdf$/i,'') + '.docx');
-
-    } else if(mode === 'pdf2img'){
-      const buf = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({data: buf}).promise;
-      const zip = new JSZip();
-      for(let i=1;i<=pdf.numPages;i++){
-        setStatus('status-conv',`Merender halaman ${i}/${pdf.numPages}...`,'wait');
-        const page = await pdf.getPage(i);
-        const viewport = page.getViewport({scale:2});
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width; canvas.height = viewport.height;
-        await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
-        const dataUrl = canvas.toDataURL('image/png');
-        const bytes = await (await fetch(dataUrl)).arrayBuffer();
-        zip.file(`halaman-${String(i).padStart(2,'0')}.png`, bytes);
-      }
-      const blob = await zip.generateAsync({type:'blob'});
-      download(blob, file.name.replace(/\.pdf$/i,'') + '-images.zip');
-
-    } else if(mode === 'docx2txt' || mode === 'docx2pdf'){
-      const buf = await file.arrayBuffer();
-      const result = await mammoth.convertToHtml({arrayBuffer: buf});
-      if(mode === 'docx2txt'){
-        const tmp = document.createElement('div');
-        tmp.innerHTML = result.value;
-        const text = tmp.innerText;
-        download(new Blob([text], {type:'text/plain'}), file.name.replace(/\.docx$/i,'') + '.txt');
-      } else {
-        const container = document.createElement('div');
-        container.style.cssText = 'position:fixed;left:-9999px;top:0;width:750px;padding:20px;background:#fff;font-family:Arial,sans-serif;font-size:14px;line-height:1.5;color:#000;';
-        container.innerHTML = result.value;
-        document.body.appendChild(container);
-        setStatus('status-conv','Merender tampilan dokumen...','wait');
-        const canvas = await html2canvas(container, {scale:2});
-        document.body.removeChild(container);
-        const { jsPDF } = window.jspdf;
-        const pdfDoc = new jsPDF({unit:'pt', format:'a4'});
-        const pageW = pdfDoc.internal.pageSize.getWidth();
-        const pageH = pdfDoc.internal.pageSize.getHeight();
-        const imgW = pageW;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        let heightLeft = imgH;
-        let position = 0;
-        const imgData = canvas.toDataURL('image/png');
-        pdfDoc.addImage(imgData, 'PNG', 0, position, imgW, imgH);
-        heightLeft -= pageH;
-        while(heightLeft > 0){
-          position = heightLeft - imgH;
-          pdfDoc.addPage();
-          pdfDoc.addImage(imgData, 'PNG', 0, position, imgW, imgH);
-          heightLeft -= pageH;
-        }
-        download(pdfDoc.output('blob'), file.name.replace(/\.docx$/i,'') + '.pdf');
-      }
-
-    } else if(mode === 'xlsx2csv' || mode === 'xlsx2json'){
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, {type:'array'});
-      const firstSheet = wb.SheetNames[0];
-      const ws = wb.Sheets[firstSheet];
-      if(mode === 'xlsx2csv'){
-        const csv = XLSX.utils.sheet_to_csv(ws);
-        download(new Blob([csv], {type:'text/csv'}), file.name.replace(/\.xlsx?$/i,'') + '.csv');
-      } else {
-        const json = XLSX.utils.sheet_to_json(ws);
-        download(new Blob([JSON.stringify(json, null, 2)], {type:'application/json'}), file.name.replace(/\.xlsx?$/i,'') + '.json');
-      }
-
-    } else if(mode === 'csv2xlsx'){
-      const text = await file.text();
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(text.replace(/\r?\n+$/, '').split(/\r?\n/).map(line => line.split(',')));
-      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-      const out = XLSX.write(wb, {type:'array', bookType:'xlsx'});
-      download(new Blob([out], {type:'application/octet-stream'}), file.name.replace(/\.csv$/i,'') + '.xlsx');
-
-    } else if(mode === 'img2pdf'){
+    if(mode === 'img2pdf'){
+      // gambar selalu digabung jadi SATU PDF (bukan diproses per-file/di-zip) --
+      // ini beda dari mode lain, sesuai fungsinya sejak awal
+      setStatus('status-conv','Memproses...','wait');
       const outDoc = await PDFDocument.create();
       for(const f of files){
         const bytes = await f.arrayBuffer();
@@ -692,9 +964,22 @@ document.getElementById('btn-conv').addEventListener('click', async ()=>{
       }
       const outBytes = await outDoc.save();
       download(new Blob([outBytes], {type:'application/pdf'}), 'gambar-ke-pdf.pdf');
+      addHistory(`${files.length} gambar digabung`, convLabels.img2pdf, 'convert');
+      setStatus('status-conv','Selesai! File hasil konversi berhasil diunduh.','ok');
+    } else if(files.length === 1){
+      setStatus('status-conv','Memproses...','wait');
+      const result = await processOneConvert(mode, files[0], (msg)=>setStatus('status-conv', msg, 'wait'));
+      download(result.blob, result.filename);
+      addHistory(files[0].name, convLabels[mode] || 'Konversi', 'convert');
+      setStatus('status-conv','Selesai! File hasil konversi berhasil diunduh.','ok');
+    } else {
+      const outcome = await runBatch({
+        files, statusId:'status-conv', zipNamePrefix:'konversi-'+mode,
+        processOne: (file, onProgress) => processOneConvert(mode, file, onProgress),
+        historyType: convLabels[mode] || 'Konversi', historyKind:'convert',
+      });
+      batchSummaryStatus('status-conv', outcome, 'file');
     }
-
-    setStatus('status-conv','Selesai! File hasil konversi berhasil diunduh.','ok');
   }catch(err){
     console.error(err);
     setStatus('status-conv','Gagal melakukan konversi. Pastikan file dan format yang dipilih sudah sesuai, lalu coba lagi. (Detail teknis dicatat di console browser untuk keperluan debug.)', 'err');
